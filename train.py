@@ -15,13 +15,14 @@ import numpy as np
 # импортируем функцию рандома
 import random as rnd
 
+
 # датасет делится на батчи, которые уже проще прочитать нейронной сети при обучении
 batch_size = 128
 # количество классов, в нашем случае количество цифр от 0 до 9 - 10
 num_classes = 10
 # количество эпох обучения, слишком много - переобучение
 # слишком мало - недообучение
-epochs = 2
+epochs = 5
 # процентное количество тестировочной выборки от всей выборки
 part_val = 0.16
 
@@ -45,19 +46,26 @@ val_size = int(size * part_val)
 val_args = []
 
 # генерируем такие номера
-for x in range(0, val_size):
-    i = rnd.randrange(0, size - 1)
-    while i in val_args:
-        i = rnd.randrange(0, size - 1)
-    val_args.append(i)
+for j in range(num_classes):
+    temp_class = np.where(Y == j)[0]
+    val_temp = []
+    for i in range(int(temp_class.shape[0]*part_val)):
+        x = rnd.randrange(0, temp_class.shape[0])
+        while x in val_temp:
+            x = rnd.randrange(0, temp_class.shape[0])
+        val_temp.append(x)
+    val_args.append(val_temp)
 
-# создаём подмассив из этих номеров
-x_test = X[val_args]
-y_test = Y[val_args]
+x_test = X[val_args[0]]
+y_test = Y[val_args[0]]
+X = np.delete(X, val_args[0], axis=0)
+Y = np.delete(Y, val_args[0], axis=0)
 
-# удаляем валидационные данные из общей выборки
-X = np.delete(X, val_args, axis=0)
-Y = np.delete(Y, val_args, axis=0)
+for j in range(1, num_classes):
+    x_test = np.append(x_test, X[val_args[j]], axis=0)
+    X = np.delete(X, val_args[j], axis=0)
+    y_test = np.append(y_test, Y[val_args[j]], axis=0)
+    Y = np.delete(Y, val_args[j], axis=0)
 
 # делаем решейп данных в зависимости от настройки keras
 if K.image_data_format() == 'channels_first':
