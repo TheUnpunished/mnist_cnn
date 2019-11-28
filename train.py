@@ -14,6 +14,7 @@ from keras import backend as K
 import numpy as np
 # импортируем функцию рандома
 import random as rnd
+import struct
 
 
 # датасет делится на батчи, которые уже проще прочитать нейронной сети при обучении
@@ -31,7 +32,29 @@ img_rows, img_cols = 28, 28
 
 # загрузка данных mnist
 # разделены на тренировочные и валидационные
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
+with open('learn_data/train-images-idx3-ubyte','rb') as f:
+    magic, size = struct.unpack(">II", f.read(8))
+    rows, cols = struct.unpack(">II", f.read(8))
+    x_train = np.fromfile(f, dtype=np.dtype(np.uint8).newbyteorder('>'))
+    x_train = x_train.reshape((size, rows, cols))
+    x_train = x_train.reshape((size, rows * cols))
+
+with open('learn_data/train-labels-idx1-ubyte', 'rb') as f:
+    magic, size = struct.unpack(">II", f.read(8))
+    y_train = np.fromfile(f, dtype=np.dtype(np.ubyte).newbyteorder('>'))
+    y_train = y_train.reshape(size)
+
+with open('learn_data/t10k-images-idx3-ubyte','rb') as f:
+    magic, size = struct.unpack(">II", f.read(8))
+    rows, cols = struct.unpack(">II", f.read(8))
+    x_test = np.fromfile(f, dtype=np.dtype(np.uint8).newbyteorder('>'))
+    x_test = x_test.reshape((size, rows, cols))
+    x_test = x_test.reshape((size, rows * cols))
+
+with open('learn_data/t10k-labels-idx1-ubyte', 'rb') as f:
+    magic, size = struct.unpack(">II", f.read(8))
+    y_test = np.fromfile(f, dtype=np.dtype(np.ubyte).newbyteorder('>'))
+    y_test = y_test.reshape(size)
 
 # соединяем тренировочные и валидационные данные, чтобы самому выделить необходимое количество
 # под каждую операцию
